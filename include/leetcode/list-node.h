@@ -1,7 +1,7 @@
 #pragma once
 
-#include <iostream>
 #include <initializer_list>
+#include <iostream>
 
 struct ListNode {
     int val;

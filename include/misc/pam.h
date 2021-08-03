@@ -31,7 +31,9 @@ class [[maybe_unused]] Pam {
     }
 
 public:
-    Pam() : last(nullptr), s("$"), root(node(0, nullptr)) { root->fail = node(-1, root); }
+    Pam() : last(nullptr), s("$"), root(node(0, nullptr)) {
+        root->fail = node(-1, root);
+    }
 
     [[maybe_unused]]
     void insert(char ch) { // NOLINT(misc-no-recursion)

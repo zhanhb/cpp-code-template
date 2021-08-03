@@ -4,6 +4,10 @@
 
 #include <chrono>
 
+#else
+
+#include <ctime>
+
 #endif
 
 #include <iostream>

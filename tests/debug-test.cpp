@@ -261,6 +261,7 @@ int main() {
     static_assert_not(debug::is_map, map_protected);
     do_static_assert(debug::is_map, multimap<int, int>);
     do_static_assert(debug::is_map, unordered_map<int, int> &&);
+    do_static_assert(debug::detail::is_specialization_of, tuple<>, tuple);
     do_static_assert(debug::is_tuple, tuple<>);
     do_static_assert(debug::is_tuple, tuple<> &&);
     do_static_assert(debug::is_tuple, const pair<int, int>&);

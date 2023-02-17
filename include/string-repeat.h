@@ -29,7 +29,7 @@ operator*(const std::basic_string<CharT, Traits, Alloc> &s, std::size_t n) {
 
 template<class CharT, class Traits, class Alloc>
 std::basic_string<CharT, Traits, Alloc>
-operator*(std::basic_string<CharT, Traits, Alloc> &&s, std::size_t n) {
+operator*=(std::basic_string<CharT, Traits, Alloc> &s, std::size_t n) {
     std::size_t len = s.length();
     if (n <= 1 || !len) {
         if (n == 0) {
@@ -56,4 +56,10 @@ operator*(std::basic_string<CharT, Traits, Alloc> &&s, std::size_t n) {
         }
     }
     return s;
+}
+
+template<class CharT, class Traits, class Alloc>
+std::basic_string<CharT, Traits, Alloc>
+operator*(std::basic_string<CharT, Traits, Alloc> &&s, std::size_t n) {
+    return std::move(s *= n);
 }

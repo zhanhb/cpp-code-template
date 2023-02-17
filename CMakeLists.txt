@@ -1,0 +1,62 @@
+cmake_minimum_required(VERSION 2.8.12)
+project(cpp-code-template)
+
+if (NOT DEFINED CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 98)
+endif ()
+
+include("${CMAKE_CURRENT_LIST_DIR}/Modules/cxx_standard.cmake")
+
+include_directories(include)
+
+macro(add_compiler_flags)
+    string(REPLACE ";" " " _FLAGS "${ARGV}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_FLAGS}")
+endmacro()
+
+macro(add_linker_flags)
+    string(REPLACE ";" " " _FLAGS "${ARGV}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_FLAGS}")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${_FLAGS}")
+endmacro()
+
+add_compiler_flags(-fno-omit-frame-pointer)
+add_compile_options(-Wall -Wextra -pedantic)
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU)$|Clang")
+    add_compile_options(-Wno-variadic-macros)
+endif ()
+add_compiler_flags(-fsanitize=undefined)
+add_linker_flags(-fsanitize=undefined)
+
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^GNU$")
+    add_compiler_flags(-static-libgcc)
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES Clang)
+    add_compiler_flags(-fgnuc-version=4.2.1)
+endif ()
+
+add_compile_definitions(VERBOSE=1)
+add_compile_definitions(_GLIBCXX_FILESYSTEM=1)
+add_compile_definitions(_LIBCPP_ABI_NO_ITERATOR_BASES)
+
+add_stdcxx_executable(leetcode 20 src/leetcode.cpp)
+add_cxx_executable(oj src/oj.cpp)
+add_executable(bit-test-c tests/bit-test.c)
+add_cxx_executable(bit-test-cpp tests/bit-test.cpp)
+add_stdcxx_executable(bit-test-cpp-11 11 tests/bit-test.cpp)
+add_stdcxx_executable(debug-test 11 tests/debug-test.cpp)
+add_cxx_executable(debug-test-98 tests/debug-test-98.cpp)
+add_stdcxx_executable(hash-tuple-test 11 tests/hash_tuple-test.cpp)
+add_stdcxx_executable(invoke-test 11 tests/invoke-test.cpp)
+add_stdcxx_executable(list-node-test 11 tests/list-node-test.cpp)
+add_stdcxx_executable(logical_traits-test 11 tests/logical_traits-test.cpp)
+add_cxx_executable(write-wide-test tests/write-wide-test.cpp)
+
+target_compile_options(oj PRIVATE "-include;debug.h")
+
+#add_compile_options(-fsanitize=signed-integer-overflow)
+#add_definitions(-fsanitize=signed-integer-overflow)
+#add_definitions(-fsanitize=undefined)
+#set(CMAKE_XCODE_SCHEME_UNDEFINED_BEHAVIOUR_SANITIZER_STOP ON)
+#set(CMAKE_XCODE_SCHEME_UNDEFINED_BEHAVIOUR_SANITIZER ON)

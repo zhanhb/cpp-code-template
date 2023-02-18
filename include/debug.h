@@ -449,6 +449,19 @@ operator<<(std::basic_ostream<CharT, Traits> &out, const std::optional<Tp> &o) {
 
 #endif
 
+#if __cpp_impl_three_way_comparison
+
+template<class CharT, class Traits>
+inline std::basic_ostream<CharT, Traits> &
+operator<<(std::basic_ostream<CharT, Traits> &out, std::partial_ordering po) {
+    if (po == 0) return out << "\"==\""; // NOLINT(modernize-use-nullptr)
+    else if (po < 0) return out << "\"<\""; // NOLINT(modernize-use-nullptr)
+    else if (po > 0) return out << "\">\""; // NOLINT(modernize-use-nullptr)
+    else return out << "\"!=\"";
+}
+
+#endif
+
 namespace debug {
 
     template<class CharT, class Traits, class Bp, class Ep>

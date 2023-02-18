@@ -434,6 +434,19 @@ operator<<(std::basic_ostream<CharT, Traits> &out, const std::optional<Tp> &o) {
 
 #endif
 
+#if __cplusplus >= 202002L
+
+template<class CharT, class Traits>
+inline std::basic_ostream<CharT, Traits> &
+operator<<(std::basic_ostream<CharT, Traits> &out, std::partial_ordering po) {
+    if (po == 0) return out << "\"==\"";
+    else if (po < 0) return out << "\"<\"";
+    else if (po > 0) return out << "\">\"";
+    else return out << "\"!=\"";
+}
+
+#endif
+
 namespace debug {
 
     template<class CharT, class Traits, class It>

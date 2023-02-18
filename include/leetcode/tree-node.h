@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <queue>
+#include <sstream>
 
 struct TreeNode {
     int val;
@@ -16,6 +17,14 @@ struct TreeNode {
 
 template<class CharT, class Traits>
 inline std::basic_ostream<CharT, Traits> &operator<<(std::basic_ostream<CharT, Traits> &out, const TreeNode *root) {
+    std::streamsize width = out.width(0);
+    if (width) {
+        std::basic_ostringstream<CharT, Traits> ss;
+        ss.copyfmt(out);
+        ss << root;
+        out.width(width);
+        return out << ss.str();
+    }
     typename std::basic_ostream<CharT, Traits>::sentry sentry(out);
     if (!sentry) return out;
     if (!root) return out << "[]";

@@ -19,8 +19,11 @@ macro(add_linker_flags)
 endmacro()
 
 add_compiler_flags(-fno-omit-frame-pointer)
-add_compiler_flags(-fsanitize=undefined)
-add_linker_flags(-fsanitize=undefined)
+
+if (NOT WIN32)
+    add_compiler_flags(-fsanitize=address)
+    add_compiler_flags(-fsanitize=undefined)
+endif ()
 
 add_definitions(-DVERBOSE=1)
 add_definitions(-D_GLIBCXX_FILESYSTEM=1)

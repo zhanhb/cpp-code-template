@@ -27,8 +27,11 @@ add_compile_options(-Wall -Wextra -pedantic)
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU)$|Clang")
     add_compile_options(-Wno-variadic-macros)
 endif ()
-add_compiler_flags(-fsanitize=undefined)
-add_linker_flags(-fsanitize=undefined)
+
+if (NOT WIN32)
+    add_compiler_flags(-fsanitize=address)
+    add_compiler_flags(-fsanitize=undefined)
+endif ()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^GNU$")
     add_compiler_flags(-static-libgcc)

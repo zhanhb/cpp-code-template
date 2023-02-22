@@ -2,10 +2,22 @@
 
 #include <type_traits>
 
-template<class Tp, class Up>
-constexpr typename std::enable_if<std::is_assignable<Tp, Up>::value, bool>::type
-Max(Tp &&a, Up &&b) { return a < b && (a = b, true); }
+#if 0
 
-template<class Tp, class Up>
-constexpr typename std::enable_if<std::is_assignable<Tp, Up>::value, bool>::type
-Min(Tp &&a, Up &&b) { return b < a && (a = b, true); }
+#define INVOKE_RETURN(...) noexcept(noexcept(__VA_ARGS__)) -> decltype(__VA_ARGS__) { return __VA_ARGS__; }
+
+template<class Tp, class Up = typename std::remove_reference<Tp>::type>
+constexpr auto Max(Tp &&a, const Up &b) INVOKE_RETURN(a < b && (a = b, true))
+
+template<class Tp, class Up = typename std::remove_reference<Tp>::type>
+constexpr auto Min(Tp &&a, const Up &b) INVOKE_RETURN(b < a && (a = b, true))
+
+#else
+
+template<class Tp, class Up = typename std::remove_reference<Tp>::type>
+constexpr auto Max(Tp &&a, const Up &b) -> decltype(a < b && (a = b, true)) { return a < b && (a = b, true); }
+
+template<class Tp, class Up = typename std::remove_reference<Tp>::type>
+constexpr auto Min(Tp &&a, const Up &b) -> decltype(b < a && (a = b, true)) { return b < a && (a = b, true); }
+
+#endif

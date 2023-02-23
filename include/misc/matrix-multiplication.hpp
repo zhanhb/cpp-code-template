@@ -19,6 +19,18 @@ array<array<int, P>, N> operator*(const array<array<int, M>, N> &a, const array<
     return res;
 }
 
+template<size_t N>
+array<array<int, N>, N> pow(array<array<int, N>, N> base, int p) {
+    array<array<int, N>, N> result{};
+    for (int i = 0; i < N; ++i) result[i][i] = 1;
+    while (true) {
+        if (p & 1) result = result * base;
+        if (!(p >>= 1)) break;
+        base = base * base;
+    }
+    return result;
+}
+
 //    array<array<int, 2>, 1> arr = {{1, 1}};
 //    array<array<int, 2>, 2> mul{
 //            0, 1,

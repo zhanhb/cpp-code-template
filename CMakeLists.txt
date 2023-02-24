@@ -41,6 +41,7 @@ endif ()
 
 add_compile_definitions(VERBOSE=1)
 add_compile_definitions(_GLIBCXX_FILESYSTEM=1)
+add_compile_definitions(_LIBCPP_ABI_NO_BINDER_BASES)
 add_compile_definitions(_LIBCPP_ABI_NO_ITERATOR_BASES)
 
 add_stdcxx_executable(leetcode 20 src/leetcode.cpp)

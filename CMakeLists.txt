@@ -27,6 +27,7 @@ endif ()
 
 add_definitions(-DVERBOSE=1)
 add_definitions(-D_GLIBCXX_FILESYSTEM=1)
+add_definitions(-D_LIBCPP_ABI_NO_BINDER_BASES)
 add_definitions(-D_LIBCPP_ABI_NO_ITERATOR_BASES)
 
 add_executable(leetcode src/leetcode.cpp)

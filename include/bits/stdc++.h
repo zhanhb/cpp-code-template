@@ -188,11 +188,29 @@
 #if __has_include(<expected>)
 #include <expected>
 #endif
+#if __has_include(<flat_map>)
+#include <flat_map>
+#endif
+#if __has_include(<flat_set>)
+#include <flat_set>
+#endif
+#if __has_include(<generator>)
+#include <generator>
+#endif
+#if __has_include(<mdspan>)
+#include <mdspan>
+#endif
+#if __has_include(<print>)
+#include <print>
+#endif
 #if __has_include(<spanstream>)
 #include <spanstream>
 #endif
 #if __has_include(<stacktrace>)
 #include <stacktrace>
+#endif
+#if __has_include(<stdfloat>)
+#include <stdfloat>
 #endif
 #endif
 

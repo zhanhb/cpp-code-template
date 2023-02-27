@@ -4,6 +4,7 @@
 
 #include "functional/unwrap_ref.h"
 #include "type_traits/bounded_array_traits.h"
+#include "type_traits/common_reference.h"
 #include "type_traits/copy_cv.h"
 #include "type_traits/is_final.h"
 #include "type_traits/is_invocable.h"

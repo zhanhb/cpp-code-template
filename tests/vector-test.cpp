@@ -27,7 +27,7 @@ public:
         return *this;
     }
 
-    friend bool operator<(Z a, Z b) {
+    friend bool operator<(Z a, Z b) { // NOLINT(performance-unnecessary-value-param)
         ++compare_cnt;
         return forward_as_tuple(a.x, a.y) < forward_as_tuple(b.x, b.y);
     }

@@ -1,6 +1,9 @@
 #include <cstdint>
 #include <vector>
 
+const int MOD = 1e9 + 7;
+const int N = 1e5 + 10;
+
 class Combine {
     std::vector<int> fac{}, inv{};
 

@@ -244,6 +244,14 @@ namespace debug {
                 : std::variant_size<typename std::remove_reference<Tp>::type>::type {
         };
 #endif
+        template<class Tp, class = Tp, class = void>
+        struct has_equal_to : std::false_type {
+        };
+        template<class Tp, class Up>
+        struct has_equal_to<Tp, Up,
+                void_t<decltype(bool(std::declval<Tp>() == std::declval<Up>()))>
+        > : std::true_type {
+        };
     }
 
     template<class Tp> using is_adapter = typename detail::is_adapter<typename std::remove_reference<Tp>::type>::type;
@@ -576,7 +584,7 @@ namespace debug {
 
     template<class ...Args>
     inline std::ostream &trace(const char *file, int line, const char *name, Args &&...args) {
-        return trace(file, line, name, std::clog, std::forward<Args>(args)...);
+        return trace(file, line, name, std::cout, std::forward<Args>(args)...);
     }
 
 #else
@@ -627,21 +635,44 @@ namespace debug {
 
     template<class Tp>
     inline std::ostream &trace(const char *file, int line, const char *name, const Tp &val) {
-        return trace(file, line, name, std::clog, val);
+        return trace(file, line, name, std::cout, val);
     }
 
     template<class Tp, class Up>
     inline std::ostream &trace(const char *file, int line, const char *name, const Tp &val1, const Up &val2) {
-        return trace(file, line, name, std::clog, val1, val2);
+        return trace(file, line, name, std::cout, val1, val2);
     }
 
     template<class Tp, class Up, class Vp>
     inline std::ostream &
     trace(const char *file, int line, const char *name, const Tp &val1, const Up &val2, const Vp &val3) {
-        return trace(file, line, name, std::clog, val1, val2, val3);
+        return trace(file, line, name, std::cout, val1, val2, val3);
     }
 
 #endif
+
+#if __cplusplus >= 201103L
+
+    template<class CharT1, class Traits1, class CharT2, class Traits2, class Rp, class Ep = Rp>
+    inline typename std::enable_if<detail::has_equal_to<const Ep &, const Rp &>::value>::type
+#else
+
+    template<class CharT1, class Traits1, class CharT2, class Traits2, class Rp, class Ep>
+    inline void
+#endif
+    validate_impl(
+            const char *file, int line, const char *name,
+            std::basic_ostream<CharT1, Traits1> &out,
+            std::basic_ostream<CharT2, Traits2> &log,
+            const Ep &expected, const Rp &result) {
+        if (expected == result) {
+            out << file << ":" << line << ": " << name << ":" << result << std::endl;
+        } else {
+            log << file << ":" << line << ": " << name << ":" << std::endl;
+            log << "expected " << expected << ", but got " << result << std::endl;
+            abort();
+        }
+    }
 }
 
 #define out(...) debug::trace(__FILE__, __LINE__, #__VA_ARGS__, __VA_ARGS__)

@@ -123,10 +123,60 @@ struct fake_map : vector<pair<int, int> > {
     using vector::vector;
 };
 
+struct reference_tracer {
+    template<class CharT, class Traits>
+    friend std::basic_ostream<CharT, Traits> &
+    operator<<(std::basic_ostream<CharT, Traits> &out, reference_tracer &rt) {
+        return out << "&";
+    }
+
+    template<class CharT, class Traits>
+    friend std::basic_ostream<CharT, Traits> &
+    operator<<(std::basic_ostream<CharT, Traits> &out, const reference_tracer &rt) {
+        return out << "& const";
+    }
+
+    template<class CharT, class Traits>
+    friend std::basic_ostream<CharT, Traits> &
+    operator<<(std::basic_ostream<CharT, Traits> &out, reference_tracer &&rt) {
+        return out << "&&";
+    }
+};
+
 #define do_static_assert(is, ...) static_assert(is<__VA_ARGS__>::value, #is "<" #__VA_ARGS__ ">::value")
 #define static_assert_not(is, ...) static_assert(!is<__VA_ARGS__>::value, #is "<" #__VA_ARGS__ ">::value")
 
+struct rt_wrapper {
+    reference_tracer data[1];
+};
+
+struct disable_move_constructor {
+    disable_move_constructor() = default;
+
+    disable_move_constructor(const disable_move_constructor &) = default;
+};
+
+disable_move_constructor hello() {
+    return disable_move_constructor{};
+}
+
 int main() {
+    disable_move_constructor dmc;
+    dmc = hello();
+    static_assert(std::is_move_constructible<disable_move_constructor>::value);
+    static_assert(std::is_same<decltype(std::declval<rt_wrapper>().data), reference_tracer[1]>::value);
+    static_assert(std::is_same<decltype(std::declval<rt_wrapper &>().data), reference_tracer[1]>::value);
+    static_assert(std::is_same<decltype((std::declval<rt_wrapper>().data)), reference_tracer(&&)[1]>::value);
+    static_assert(std::is_same<decltype((std::declval<rt_wrapper &>().data)), reference_tracer(&)[1]>::value);
+    static_assert(std::is_same<decltype(((std::declval<rt_wrapper>().data))), reference_tracer(&&)[1]>::value);
+    static_assert(std::is_same<decltype(((std::declval<rt_wrapper &>().data))), reference_tracer(&)[1]>::value);
+    static_assert(std::is_same<decltype(std::declval<rt_wrapper>().data[0]), reference_tracer &&>::value);
+    static_assert(std::is_same<decltype(std::declval<rt_wrapper &>().data[0]), reference_tracer &>::value);
+    // TODO this might be buggy
+    static_assert(std::is_same<decltype(std::declval<rt_wrapper>().data + 1), reference_tracer *>::value);
+    static_assert(std::is_same<decltype(std::declval<reference_tracer(&)[1]>()[0]), reference_tracer &>::value);
+    static_assert(std::is_same<decltype(std::declval<reference_tracer(&&)[1]>()[0]), reference_tracer &&>::value);
+
     out(setlocale(LC_CTYPE, nullptr));
     setlocale(LC_CTYPE, "");
     out(setlocale(LC_CTYPE, nullptr));
@@ -165,6 +215,14 @@ int main() {
 #if __cplusplus >= 201703L
     out(range{11LL, 20LL});
 #endif
+    {
+        const vector<reference_tracer> t{reference_tracer()};
+        out(t);
+        out(deque<reference_tracer>{reference_tracer()}.front());
+        for (auto &&tmp: vector<reference_tracer>{reference_tracer()}) {
+            out(std::forward<decltype(tmp)>(tmp));
+        }
+    }
     out(set<int>{2, 3, 4});
     out(stack<int>(deque<int>{1, 2, 3}));
     out(unordered_map<int, int>{

@@ -17,6 +17,7 @@
 #if __cplusplus >= 201703L
 
 #include <optional>
+#include <variant>
 
 #endif /* 201703L */
 #endif
@@ -229,6 +230,20 @@ namespace debug {
         template<template<class, class> class BasicStringView, class CharT>
         struct is_string<BasicStringView<CharT, std::char_traits<CharT> > > : is_char<CharT>::type {
         };
+
+#if __cpp_lib_variant
+
+        template<class Tp, bool = detail::is_specialization_of<
+                typename std::remove_cv<typename std::remove_reference<Tp>::type>::type,
+                std::variant
+        >::value, class = void>
+        struct sfinae_variant_size {
+        };
+        template<class Tp>
+        struct sfinae_variant_size<Tp, true, void_t<typename std::variant_size<typename std::remove_reference<Tp>::type>::type> >
+                : std::variant_size<typename std::remove_reference<Tp>::type>::type {
+        };
+#endif
     }
 
     template<class Tp> using is_adapter = typename detail::is_adapter<typename std::remove_reference<Tp>::type>::type;
@@ -283,6 +298,13 @@ namespace debug {
     template<size_t Ip = 0, class Tp, size_t Np = std::tuple_size<typename std::remove_reference<Tp>::type>::value, class CharT, class Traits>
     inline typename std::enable_if<Ip + 1 < Np, std::basic_ostream<CharT, Traits> &>::type
     write_tuple(std::basic_ostream<CharT, Traits> &, Tp &&);
+
+#if __cpp_lib_variant
+
+    template<class CharT, class Traits, class Variant>
+    inline std::basic_ostream<CharT, Traits> &write_variant(std::basic_ostream<CharT, Traits> &, Variant &&);
+
+#endif
 
 #else
 
@@ -348,6 +370,17 @@ inline typename std::enable_if<
     return debug::write_tuple(out << '[', std::forward<Tp>(tuple)) << ']';
 }
 
+#if __cpp_lib_variant
+
+template<class CharT, class Traits, class Variant>
+inline typename std::enable_if<
+        bool(debug::detail::sfinae_variant_size<typename std::remove_reference<Variant>::type>::value),
+        std::basic_ostream<CharT, Traits> &
+>::type operator<<(std::basic_ostream<CharT, Traits> &out, Variant &&var) {
+    return debug::write_variant(out, std::forward<Variant>(var));
+}
+
+#endif
 #else
 
 #include <list>
@@ -521,6 +554,17 @@ namespace debug {
     write_tuple(std::basic_ostream<CharT, Traits> &out, Tp &&tp) {
         return write_tuple<Ip + 1>(out << std::get<Ip>(std::forward<Tp>(tp)) << ',', std::forward<Tp>(tp));
     }
+
+#if __cpp_lib_variant
+
+    template<class CharT, class Traits, class Variant>
+    inline std::basic_ostream<CharT, Traits> &write_variant(std::basic_ostream<CharT, Traits> &out, Variant &&variant) {
+        return std::visit([&](auto &&var) -> decltype(auto) {
+            return out << std::forward<decltype(var)>(var);
+        }, std::forward<Variant>(variant));
+    }
+
+#endif
 
     template<class CharT, class Traits, class ...Args>
     inline std::basic_ostream<CharT, Traits> &

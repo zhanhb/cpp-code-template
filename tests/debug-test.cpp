@@ -185,6 +185,9 @@ int main() {
 #if __cpp_deduction_guides
     OUT(range{11LL, 20LL});
 #endif
+#if __cpp_lib_variant
+    OUT(std::variant<int, std::string>{});
+#endif
     OUT(std::set<int>{2, 3, 4});
     OUT(std::stack<int>(std::deque<int>{1, 2, 3}));
     OUT(std::unordered_map<int, int>{

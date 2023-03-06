@@ -55,6 +55,7 @@ add_stdcxx_executable(hash-tuple-test 11 tests/hash_tuple-test.cpp)
 add_stdcxx_executable(invoke-test 11 tests/invoke-test.cpp)
 add_stdcxx_executable(list-node-test 11 tests/list-node-test.cpp)
 add_stdcxx_executable(logical_traits-test 11 tests/logical_traits-test.cpp)
+add_stdcxx_executable(reverse-test 11 tests/reverse-test.cpp)
 add_cxx_executable(tree-node-test tests/tree-node-test.cpp)
 add_cxx_executable(write-wide-test tests/write-wide-test.cpp)
 

@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-class [[maybe_unused]] Measure {
+class Measure {
     const char *file;
     int line;
 #if __cplusplus >= 201103L
@@ -38,19 +38,29 @@ class [[maybe_unused]] Measure {
 public:
     explicit Measure(const char *file, int line) : file(file), line(line), start(get_now()) {}
 
-    explicit Measure(const char *file, int line, const std::string &name) noexcept: Measure(file, line) {}
-
-    ~Measure() { // NOLINT(modernize-use-equals-default)
+    ~Measure() {
         long double escaped = get_diff_as<long double>(); // NOLINT(modernize-use-auto)
         std::cerr << file << ":" << line << ": " << escaped << "s" << std::endl;
     }
 };
 
+#if __cplusplus >= 201103L
+
 template<class Tp>
-auto wrapper_measure(const char *file, int line, Tp &&tp) -> decltype(tp()) {
+auto wrapper_measure(const char *file, int line, Tp &&fun) -> decltype(fun()) {
     Measure sm(file, line);
-    return tp();
+    return fun();
 }
+
+#else
+
+template<class Tp>
+Tp wrapper_measure(const char *file, int line, Tp (*fun)()) {
+    Measure sm(file, line);
+    return fun();
+}
+
+#endif
 
 #define CONCAT(a, b) a ## b
 #define EXPAND_CONCAT(a, b) CONCAT(a, b)

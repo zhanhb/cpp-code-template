@@ -215,26 +215,8 @@
 #endif
 
 #if 201103L <= __cplusplus && __cplusplus <= 201402L
-#if __has_include(<ccomplex>)
-#include <ccomplex>
-#endif
 #if __has_include(<codecvt>)
 #include <codecvt>
-#endif
-#if __has_include(<cstdalign>)
-#include <cstdalign>
-#endif
-#if __has_include(<cstdbool>)
-#include <cstdbool>
-#endif
-#if __has_include(<ctgmath>)
-#include <ctgmath>
-#endif
-#endif
-
-#if __cplusplus <= 201703L
-#if __has_include(<ciso646>)
-#include <ciso646>
 #endif
 #endif
 // @formatter:on

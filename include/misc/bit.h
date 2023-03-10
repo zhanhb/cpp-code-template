@@ -98,10 +98,7 @@ typename std::enable_if<
         std::is_trivially_copyable<From>::value &&
         std::is_trivially_copyable<To>::value,
         To>::type
-#if __cplusplus >= 201402L
-constexpr // constexpr support needs compiler magic
-#endif
-bit_cast(const From &src) noexcept {
+CONSTEXPR_14 bit_cast(const From &src) noexcept {
     static_assert(std::is_trivially_constructible<To>::value,
                   "This implementation additionally requires destination type to be trivially constructible");
     To dst;

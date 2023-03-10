@@ -11,7 +11,7 @@ struct PamNode {
     PamNode *ch[26]{};
     PamNode *fail, *slink{};
 
-    PamNode(int len, PamNode *fail, int dep = 0) : len(len), fail(fail), dep(dep) {}
+    PamNode(int len, PamNode *fail, int dep = 0) : len(len), dep(dep), fail(fail) {}
 };
 
 class [[maybe_unused]] Pam {
@@ -21,7 +21,7 @@ class [[maybe_unused]] Pam {
 
     template<class ...Args>
     PamNode *node(Args &&...args) {
-        return &container.emplace_back(forward<Args>(args)...);
+        return &container.emplace_back(std::forward<Args>(args)...);
     }
 
     PamNode *getfail(PamNode *x) { // NOLINT(readability-convert-member-functions-to-static)
@@ -31,7 +31,7 @@ class [[maybe_unused]] Pam {
     }
 
 public:
-    Pam() : last(nullptr), s("$"), root(node(0, nullptr)) {
+    Pam() : s("$"), root(node(0, nullptr)), last(nullptr) {
         root->fail = node(-1, root);
     }
 

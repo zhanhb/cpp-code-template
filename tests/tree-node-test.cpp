@@ -2,7 +2,6 @@
 #include <sstream>
 #include "verify.h"
 #include <cassert>
-#include "extension/nullptr-03.h"
 
 using namespace std;
 
@@ -12,15 +11,15 @@ void test1() {
             "[5,8,9,2,1,3,7,4,6]",
             "[]",
     };
+    Tree<int> tree;
     const std::size_t size = sizeof(test_cases) / sizeof test_cases[0];
     for (std::size_t i = 0; i != size; ++i) { // NOLINT(modernize-loop-convert)
         const string &buf = test_cases[i];
         istringstream ss(buf);
-        TreeNode *p;
-        ss >> p;
+        ss >> tree;
         assert(ss.good());
         ostringstream os;
-        os << p;
+        os << tree;
         verify(buf, os.str());
     }
     {
@@ -29,16 +28,16 @@ void test1() {
             buf += test_cases[i];
         }
         istringstream ss(buf);
-        TreeNode *p;
-        for (int i = 0; ss >> p; ++i) {
+        for (int i = 0; ss >> tree; ++i) {
             ostringstream os;
-            os << p;
+            os << tree;
             verify(test_cases[i], os.str());
         }
     }
 }
 
 void test2() {
+    Tree<int> tree;
     const char *test_cases[] = {
             "[1,2,n ull]",
             "[1,2,nu ll]",
@@ -47,17 +46,16 @@ void test2() {
     const std::size_t size = sizeof(test_cases) / sizeof test_cases[0];
     for (std::size_t i = 0; i != size; ++i) { // NOLINT(modernize-loop-convert)
         istringstream ss(test_cases[i]);
-        TreeNode *p = nullptr;
-        verify(false, bool(ss >> p));
-        verify((TreeNode *) nullptr, p);
+        verify(false, bool(ss >> tree));
+        verify(reinterpret_cast<TreeNode *>(0), tree);
     }
 }
 
 void test3() {
     istringstream ss(" [ 1 , 3 , 4 , 2 , null, 6, 5, null, null, null , null, null, 7]");
-    TreeNode *p;
-    ss >> p;
-    OUT(p);
+    Tree<int> tree;
+    ss >> tree;
+    OUT(tree);
 }
 
 void test_wide() {
@@ -66,15 +64,15 @@ void test_wide() {
             L"[5,8,9,2,1,3,7,4,6]",
             L"[]",
     };
+    Tree<int> tree;
     const std::size_t size = sizeof(test_cases) / sizeof test_cases[0];
     for (std::size_t i = 0; i != size; ++i) { // NOLINT(modernize-loop-convert)
         const wstring &buf = test_cases[i];
         wistringstream ss(buf);
-        TreeNode *p;
-        ss >> p;
+        ss >> tree;
         assert(ss.good());
         wostringstream os;
-        os << p;
+        os << tree;
         verify(buf, os.str());
     }
     {
@@ -83,10 +81,9 @@ void test_wide() {
             buf += test_cases[i];
         }
         wistringstream ss(buf);
-        TreeNode *p;
-        for (int i = 0; ss >> p; ++i) {
+        for (int i = 0; ss >> tree; ++i) {
             wostringstream os;
-            os << p;
+            os << tree;
             verify(test_cases[i], os.str());
         }
     }

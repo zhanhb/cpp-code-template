@@ -1,5 +1,6 @@
 #pragma once
 
+#include "define_bool.h"
 #include "type_traits.h"
 
 #if __cplusplus >= 202002L || !(defined(__GNUC__) && !defined(__clang__) && !defined(__EDG__))
@@ -9,13 +10,9 @@
 #define IS_VA_OPT_SUPPORTED(...) 0
 #endif
 
-#define PARAM_PACK(...) __VA_ARGS__
-
 #if __cpp_concepts
 
 #define DEFINE_CONCEPT_UNSAFE(temp, name, ...) template<temp> concept name = PARAM_PACK(__VA_ARGS__);
-
-#define CONCEPT_GET(concept, ...) concept<__VA_ARGS__>
 #if IS_VA_OPT_SUPPORTED(?)
 #define TYPE_CONCEPT(type, concept, ...) concept __VA_OPT__(<__VA_ARGS__>) type
 #else
@@ -26,22 +23,7 @@
 
 #else /* __cpp_concepts */
 
-#if __cpp_variable_templates
-#define CONCEPT_GET(concept, ...) concept<__VA_ARGS__>
-#if __cpp_inline_variables >= 201606L
-#define DEFINE_CONCEPT_UNSAFE(temp, name, ...) template<temp> inline constexpr bool PARAM_PACK(name) = __VA_ARGS__;
-#else
-#define DEFINE_CONCEPT_UNSAFE(temp, name, ...) template<temp> constexpr bool PARAM_PACK(name) = __VA_ARGS__;
-#endif
-#else /* __cpp_variable_templates */
-#define CONCEPT_GET(concept, ...) concept<__VA_ARGS__>::value
-#if __cplusplus >= 201103L
-#define DEFINE_CONCEPT_UNSAFE(temp, name, ...) template<temp> struct name final : std::integral_constant<bool, (__VA_ARGS__)> {};
-#else
-#define DEFINE_CONCEPT_UNSAFE(temp, name, ...) template<temp> struct name : extension::integral_constant<bool, (__VA_ARGS__)> {};
-#endif
-#endif /* __cpp_variable_templates */
-
+#define DEFINE_CONCEPT_UNSAFE(temp, name, ...) DEFINE_BOOL(PARAM_PACK(temp), PARAM_PACK(name), PARAM_PACK(__VA_ARGS__))
 #define TYPE_CONCEPT(type, ...) class type
 #define REQUIRE_CONCEPT(...)
 
@@ -53,6 +35,7 @@
 
 #endif /* __cpp_concepts */
 
+#define CONCEPT_GET(concept, ...) BOOL_GET(PARAM_PACK(concept), PARAM_PACK(__VA_ARGS__))
 #define DEFINE_CONCEPT1_UNSAFE(name, type1, ...) DEFINE_CONCEPT_UNSAFE(PARAM_PACK(class type1), name, PARAM_PACK(__VA_ARGS__))
 #define DEFINE_CONCEPT2_UNSAFE(name, type1, type2, ...) DEFINE_CONCEPT_UNSAFE(PARAM_PACK(class type1, class type2), name, PARAM_PACK(__VA_ARGS__))
 #define DEFINE_CONCEPT3_UNSAFE(name, type1, type2, type3, ...) DEFINE_CONCEPT_UNSAFE(PARAM_PACK(class type1, class type2, class type3), name, PARAM_PACK(__VA_ARGS__))

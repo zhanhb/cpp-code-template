@@ -210,17 +210,17 @@ struct range_like_5 {
     NODISCARD const char *end() const { return nullptr; } // NOLINT(readability-convert-member-functions-to-static)
 };
 
-STATIC_ASSERT_NOT_V(utility::is_range, range_like_1);
-STATIC_ASSERT_NOT_V(utility::is_range, range_like_2);
-STATIC_ASSERT_V(utility::is_range, range_like_3);
-STATIC_ASSERT_NOT_V(utility::is_range, range_like_4);
+STATIC_ASSERT_NOT_CONCEPT(utility::is_range, range_like_1);
+STATIC_ASSERT_NOT_CONCEPT(utility::is_range, range_like_2);
+STATIC_ASSERT_CONCEPT(utility::is_range, range_like_3);
+STATIC_ASSERT_NOT_CONCEPT(utility::is_range, range_like_4);
 #if __cpp_range_based_for >= 201603L
-STATIC_ASSERT_V(utility::is_range, range_like_5);
+STATIC_ASSERT_CONCEPT(utility::is_range, range_like_5);
 #else
-STATIC_ASSERT_NOT_V(utility::is_range, range_like_5);
+STATIC_ASSERT_NOT_CONCEPT(utility::is_range, range_like_5);
 #endif
-STATIC_ASSERT_V(utility::is_range, std::vector<int>);
-STATIC_ASSERT_NOT_V(utility::is_range, std::ostream);
+STATIC_ASSERT_CONCEPT(utility::is_range, std::vector<int>);
+STATIC_ASSERT_NOT_CONCEPT(utility::is_range, std::ostream);
 
 int main() {
     OUT(std::setlocale(LC_CTYPE, nullptr));

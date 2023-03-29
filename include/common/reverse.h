@@ -61,21 +61,19 @@ namespace reverse_wrapper {
         }
     };
 
-    template<class, class = void>
-    struct reversible : std::false_type {
-    };
-    template<class Tp>
-    struct reversible<Tp, typename std::enable_if<utility::is_range_iterator<
-            decltype(reverse_wrapper::rbegin(std::declval<Tp &>())),
-            decltype(reverse_wrapper::rend(std::declval<Tp &>()))
-    >::value>::type> : std::true_type {
-    };
+    DEFINE_CONCEPT1_COND(
+            reversible, Tp,
+            CONCEPT_GET(
+                    utility::is_range_iterator,
+                    decltype(reverse_wrapper::rbegin(std::declval<Tp &>())),
+                    decltype(reverse_wrapper::rend(std::declval<Tp &>()))
+            )
+    )
 
     template<class Tp>
-    inline typename std::enable_if<
-            reversible<decltype(std::declval<mutable_member<Tp &&>>().data)>::value,
-            wrapper<Tp>
-    >::type reverse(Tp &&upper) {
+    REQUIRE_CONCEPT(reversible, decltype(std::declval<mutable_member<Tp &&>>().data))
+    inline CONCEPT_IF_1(reversible, decltype(std::declval<mutable_member<Tp &&>>().data), wrapper<Tp>)
+    reverse(Tp &&upper) {
         return wrapper<Tp>(std::forward<Tp>(upper));
     }
 }

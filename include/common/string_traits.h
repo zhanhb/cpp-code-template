@@ -1,6 +1,6 @@
 #pragma once
 
-#include "extension/type_traits.h"
+#include "extension/concepts.h"
 
 namespace utility {
 
@@ -29,12 +29,14 @@ namespace utility {
         typedef typename Tp::value_type value_type;
     };
 
-    template<class Tp, class CharT>
-    struct is_string_of : std::false_type {
-    };
-    template<class Tp>
-    struct is_string_of<Tp, typename string_traits<extension::remove_cvref_t<Tp> >::value_type> : std::true_type {
-    };
+    DEFINE_CONCEPT2_COND(
+            string_of, Tp, CharT,
+            CONCEPT_GET(
+                    extension::same_as,
+                    CharT,
+                    typename string_traits<typename std::remove_reference<Tp>::type>::value_type
+            )
+    )
 
 #else /* 201103L */
 
@@ -79,10 +81,10 @@ namespace utility {
         typedef typename Tp::value_type value_type;
     };
     template<class Tp, class CharT>
-    struct is_string_of : extension::false_type {
+    struct string_of : extension::false_type {
     };
     template<class Tp>
-    struct is_string_of<Tp, typename string_traits<
+    struct string_of<Tp, typename string_traits<
             typename extension::remove_reference<Tp>::type
     >::value_type> : extension::true_type {
     };

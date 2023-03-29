@@ -1,48 +1,38 @@
 #pragma once
 
-#include "extension/type_traits.h"
+#include "extension/concepts.h"
 
 namespace utility {
 
 #if __cplusplus >= 201103L
 
-    template<class Bp, class Ep, class = void>
-    struct is_range_iterator_impl : std::false_type {
-    };
-    template<class Bp, class Ep>
-    struct is_range_iterator_impl<Bp, Ep, extension::void_t<
-            typename std::enable_if<
+    DEFINE_CONCEPT2_COND_EXP(
+            is_range_iterator_impl, Bp, Ep,
+            PARAM_PACK(
                     std::is_convertible<Bp, typename std::decay<Bp>::type>::value &&
                     std::is_convertible<Ep, typename std::decay<Ep>::type>::value &&
                     !std::is_void<decltype(*std::declval<typename std::decay<Bp>::type &>())>::value
-            >::type,
-            decltype(++std::declval<typename std::decay<Bp>::type &>()),
-            decltype(bool(std::declval<typename std::decay<Bp>::type &>() != std::declval<typename std::decay<Ep>::type &>()))
-    > > : std::true_type {
-    };
+            ),
+            ++std::declval<typename std::decay<Bp>::type &>(),
+            bool (std::declval<typename std::decay<Bp>::type &>() != std::declval<typename std::decay<Ep>::type &>())
+    )
 
 #if __cpp_range_based_for >= 201603L
-    template<class Bp, class Ep>
-    struct is_range_iterator : is_range_iterator_impl<Bp, Ep> {
-    };
+    DEFINE_CONCEPT2_UNSAFE(is_range_iterator, Bp, Ep, CONCEPT_GET(is_range_iterator_impl, Bp, Ep))
 #else
-    template<class, class>
-    struct is_range_iterator : std::false_type {
-    };
-    template<class Tp>
-    struct is_range_iterator<Tp, Tp> : is_range_iterator_impl<Tp, Tp> {
-    };
+    DEFINE_CONCEPT2_UNSAFE(
+            is_range_iterator, Bp, Ep,
+            CONCEPT_GET(extension::same_as, Bp, Ep) && CONCEPT_GET(is_range_iterator_impl, Bp, Ep))
 #endif
 
-    template<class, class = void>
-    struct is_range : std::false_type {
-    };
-    template<class Tp>
-    struct is_range<Tp, typename std::enable_if<is_range_iterator<
-            decltype(std::begin(std::declval<Tp &>())),
-            decltype(std::end(std::declval<Tp &>()))
-    >::value>::type> : std::true_type {
-    };
+    DEFINE_CONCEPT1_COND(
+            is_range, Tp,
+            CONCEPT_GET(
+                    is_range_iterator,
+                    decltype(std::begin(std::declval<Tp &>())),
+                    decltype(std::end(std::declval<Tp &>()))
+            )
+    )
 
 #else /* 201103L */
 

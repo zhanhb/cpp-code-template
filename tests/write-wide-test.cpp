@@ -70,16 +70,16 @@ void do_test(const basic_string<Tp> &expect, const basic_string<Up> &u, std::loc
 
 STATIC_ASSERT_SAME_AS(char, utility::string_traits<std::string>::value_type);
 STATIC_ASSERT_SAME_AS(wchar_t, utility::string_traits<std::wstring>::value_type);
-STATIC_ASSERT_V(utility::is_string_of, std::string, char);
-STATIC_ASSERT_V(utility::is_string_of, std::wstring, wchar_t);
+STATIC_ASSERT_CONCEPT(utility::string_of, std::string, char);
+STATIC_ASSERT_CONCEPT(utility::string_of, std::wstring, wchar_t);
 #if __cplusplus >= 201103L
-STATIC_ASSERT_V(utility::is_string_of, std::string &, char);
-STATIC_ASSERT_V(utility::is_string_of, std::wstring &, wchar_t);
-STATIC_ASSERT_V(utility::is_string_of, std::string &&, char);
-STATIC_ASSERT_V(utility::is_string_of, std::wstring &&, wchar_t);
+STATIC_ASSERT_CONCEPT(utility::string_of, std::string &, char);
+STATIC_ASSERT_CONCEPT(utility::string_of, std::wstring &, wchar_t);
+STATIC_ASSERT_CONCEPT(utility::string_of, std::string &&, char);
+STATIC_ASSERT_CONCEPT(utility::string_of, std::wstring &&, wchar_t);
 #endif
-STATIC_ASSERT_V(utility::is_string_of, const std::string, char);
-STATIC_ASSERT_V(utility::is_string_of, const std::wstring, wchar_t);
+STATIC_ASSERT_CONCEPT(utility::string_of, const std::string, char);
+STATIC_ASSERT_CONCEPT(utility::string_of, const std::wstring, wchar_t);
 
 int main() {
     std::locale loc;

@@ -74,40 +74,14 @@ operator<<(std::basic_ostream<char> &out, wchar_t ch) {
     return wide_writer::write_string(out, &ch, 1);
 }
 
-#if __cplusplus >= 201103L
-
-template<class Traits, class String>
-inline typename std::enable_if<
-        utility::is_string_of<String, wchar_t>::value,
-        std::basic_ostream<char, Traits> &>::type
+template<class Traits, TYPE_CONCEPT(String, utility::string_of, wchar_t)>
+inline CONCEPT_IF_2(utility::string_of, String, wchar_t, std::basic_ostream<char, Traits> &)
 operator<<(std::basic_ostream<char, Traits> &out, const String &str) {
     return wide_writer::write_string(out, str.data(), str.length());
 }
 
-template<class Traits, class String>
-inline typename std::enable_if<
-        utility::is_string_of<String, char>::value,
-        std::basic_ostream<wchar_t, Traits> &>::type
+template<class Traits, TYPE_CONCEPT(String, utility::string_of, char)>
+inline CONCEPT_IF_2(utility::string_of, String, char, std::basic_ostream<wchar_t, Traits> &)
 operator<<(std::basic_ostream<wchar_t, Traits> &out, const String &str) {
     return wide_writer::write_string(out, str.data(), str.length());
 }
-
-#else /* 201103L */
-
-template<class Traits, class String>
-inline typename extension::enable_if<
-        utility::is_string_of<String, wchar_t>::value,
-        std::basic_ostream<char, Traits> &>::type
-operator<<(std::basic_ostream<char, Traits> &out, const String &str) {
-    return wide_writer::write_string(out, str.data(), str.length());
-}
-
-template<class Traits, class String>
-inline typename extension::enable_if<
-        utility::is_string_of<String, char>::value,
-        std::basic_ostream<wchar_t, Traits> &>::type
-operator<<(std::basic_ostream<wchar_t, Traits> &out, const String &str) {
-    return wide_writer::write_string(out, str.data(), str.length());
-}
-
-#endif /* 201103L */

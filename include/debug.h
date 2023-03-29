@@ -31,37 +31,16 @@ namespace debug {
 
 #if __cplusplus >= 201103L
 
-        template<class Tp, class = void>
-        struct is_map_impl : std::false_type {
-        };
-        template<class Tp>
-        struct is_map_impl<Tp, extension::void_t<
-                typename Tp::key_type,
-                typename Tp::mapped_type,
-                typename Tp::value_type
-        > > : std::is_same<
-                typename Tp::value_type,
-                std::pair<typename Tp::key_type const, typename Tp::mapped_type>
-        >::type {
-        };
-        template<class Tp>
-        struct is_map : extension::conjunction<utility::is_range<Tp>, is_map_impl<typename std::decay<Tp>::type> > {
-        };
-
-        template<class Tp>
-        struct is_collection : std::integral_constant<bool, utility::is_range<Tp>::value && !is_map<Tp>::value> {
-        };
-
-        template<class, class = void>
-        struct is_tuple : std::false_type {
-        };
-        template<class Tp>
-        struct is_tuple<Tp, extension::void_t<std::integral_constant<
-                std::size_t,
-                std::tuple_size<extension::remove_cvref_t<Tp> >::value
-        > >
-        > : std::true_type {
-        };
+        DEFINE_CONCEPT1_COND(
+                is_map, Tp,
+                CONCEPT_GET(utility::is_range, Tp) &&
+                CONCEPT_GET(
+                        extension::same_as,
+                        typename extension::remove_cvref_t<Tp>::value_type,
+                        std::pair<const typename extension::remove_cvref_t<Tp>::key_type, typename extension::remove_cvref_t<Tp>::mapped_type>
+                )
+        )
+        DEFINE_CONCEPT1_EXP(is_tuple, Tp, std::tuple_size<extension::remove_cvref_t<Tp> >::value)
 
         template<class Tp> using member_object_pointer_t = typename std::enable_if<std::is_member_object_pointer<Tp>::value, Tp>::type;
 
@@ -108,20 +87,20 @@ namespace debug {
         template<class Tp, class Up> struct mem_ptr_traits<Tp Up::*> { using return_type = Tp; };
         // @formatter:on
 
-        template<class, class = void>
-        struct is_adapter : std::false_type {
-        };
-        template<class Tp>
-        struct is_adapter<Tp, typename std::enable_if<std::is_same<
-                typename extension::remove_cvref_t<Tp>::container_type,
-                typename mem_ptr_traits<typename member_c_info<Tp>::value_type>::return_type
-        >::value && utility::is_range<
-                extension::copy_cv_t<
-                        typename std::remove_reference<Tp>::type,
-                        typename extension::remove_cvref_t<Tp>::container_type
-                >
-        >::value>::type> : std::true_type {
-        };
+        DEFINE_CONCEPT1_COND(
+                is_adapter, Tp,
+                CONCEPT_GET(
+                        extension::same_as,
+                        typename extension::remove_cvref_t<Tp>::container_type,
+                        typename mem_ptr_traits<typename member_c_info<Tp>::value_type>::return_type
+                ) && CONCEPT_GET(
+                        utility::is_range,
+                        extension::copy_cv_t<
+                                typename std::remove_reference<Tp>::type,
+                                typename extension::remove_cvref_t<Tp>::container_type
+                        >
+                )
+        )
 
         template<class Tp>
         struct is_char : extension::disjunction<
@@ -137,19 +116,16 @@ namespace debug {
         >::type {
         };
 
-        template<class Tp, class = void>
-        struct is_string_impl : std::false_type {
-        };
-        template<class Tp>
-        struct is_string_impl<Tp, extension::void_t<typename utility::string_traits<Tp>::value_type> >
-                : is_char<typename utility::string_traits<Tp>::value_type> {
-        };
-        template<class Tp>
-        struct is_string_impl<Tp *> : is_char<typename std::remove_const<Tp>::type> {
-        };
-        template<class Tp>
-        struct is_string : is_string_impl<typename std::decay<Tp>::type>::type {
-        };
+        DEFINE_CONCEPT1_COND(is_string_or_view, Tp, is_char<typename utility::string_traits<Tp>::value_type>::value)
+        DEFINE_CONCEPT1_COND(
+                is_char_pointer, Tp,
+                std::is_pointer<Tp>::value &&
+                is_char<typename std::decay<typename std::remove_pointer<Tp>::type>::type>::value
+        )
+        DEFINE_CONCEPT1_UNSAFE(
+                is_string, Tp,
+                CONCEPT_GET(is_string_or_view, typename std::decay<Tp>::type) ||
+                CONCEPT_GET(is_char_pointer, typename std::decay<Tp>::type))
 
         struct adapter_helper {
             template<class Tp>
@@ -188,12 +164,6 @@ namespace debug {
 
         template<class Tp>
         class is_map<Tp, false> : public extension::false_type {
-        };
-
-        template<class Tp>
-        struct is_collection : extension::integral_constant<bool,
-                utility::is_range<Tp>::value && !is_map<Tp>::value
-        > {
         };
 
         template<class Tp,
@@ -308,32 +278,19 @@ namespace debug {
 
     }
 
-    using detail::is_adapter;
-    using detail::is_collection;
-    using detail::is_map;
-    using detail::is_string;
+    DEFINE_CONCEPT1_UNSAFE(adapter, Tp, CONCEPT_GET(detail::is_adapter, Tp))
+    DEFINE_CONCEPT1_UNSAFE(map, Tp, CONCEPT_GET(detail::is_map, Tp))
+    DEFINE_CONCEPT1_UNSAFE(collection, Tp, CONCEPT_GET(utility::is_range, Tp) && !CONCEPT_GET(map, Tp))
+    DEFINE_CONCEPT1_UNSAFE(string, Tp, CONCEPT_GET(detail::is_string, Tp))
+    DEFINE_CONCEPT1_UNSAFE(collection_minus_string, Tp, CONCEPT_GET(collection, Tp) && !CONCEPT_GET(string, Tp))
 
 #if __cplusplus >= 201103L
 
-    template<class Tp>
-    struct collection_minus_string : std::integral_constant<bool,
-            debug::is_collection<Tp>::value && !detail::is_string<Tp>::value> {
-    };
-    using detail::is_tuple;
-    template<class Tp>
-    struct tuple_minus_range : std::integral_constant<bool,
-            detail::is_tuple<Tp>::value && !utility::is_range<Tp>::value> {
-    };
+    DEFINE_CONCEPT1_UNSAFE(tuple, Tp, CONCEPT_GET(detail::is_tuple, Tp))
+    DEFINE_CONCEPT1_UNSAFE(tuple_minus_range, Tp, CONCEPT_GET(tuple, Tp) && !CONCEPT_GET(utility::is_range, Tp))
 
 #if __cpp_lib_variant
-
-    template<class, class = void>
-    struct is_variant : std::false_type {
-    };
-    template<class Tp>
-    struct is_variant<Tp, decltype(void(std::variant_size<typename std::decay<Tp>::type>::value))> : std::true_type {
-    };
-
+    DEFINE_CONCEPT1_EXP(variant, Tp, std::variant_size<typename std::decay<Tp>::type>::value)
 #endif
 
     template<class CharT, class Traits, class Adapter>
@@ -374,11 +331,6 @@ namespace debug {
 
 #else /* 201103L */
 
-    template<class Tp>
-    struct collection_minus_string : extension::integral_constant<bool,
-            debug::is_collection<Tp>::value && !detail::is_string<Tp>::value>::type {
-    };
-
     template<class CharT, class Traits, class Adapter>
     inline std::basic_ostream<CharT, Traits> &
     write_adapter(std::basic_ostream<CharT, Traits> &, Adapter &);
@@ -403,44 +355,34 @@ namespace debug {
 
 #if __cplusplus >= 201103L
 
-template<class CharT, class Traits, class Adapter>
-inline typename std::enable_if<
-        debug::is_adapter<Adapter>::value,
-        std::basic_ostream<CharT, Traits> &>::type
+template<class CharT, class Traits, TYPE_CONCEPT(Adapter, debug::adapter)>
+inline CONCEPT_IF_1(debug::adapter, Adapter, std::basic_ostream<CharT, Traits> &)
 operator<<(std::basic_ostream<CharT, Traits> &out, Adapter &&adapter) {
     return debug::write_adapter(out, std::forward<Adapter>(adapter));
 }
 
-template<class CharT, class Traits, class Coll>
-inline typename std::enable_if<
-        debug::collection_minus_string<Coll>::value,
-        std::basic_ostream<CharT, Traits> &>::type
+template<class CharT, class Traits, TYPE_CONCEPT(Coll, debug::collection_minus_string)>
+inline CONCEPT_IF_1(debug::collection_minus_string, Coll, std::basic_ostream<CharT, Traits> &)
 operator<<(std::basic_ostream<CharT, Traits> &out, Coll &&c) {
     return debug::write_collection(out, std::forward<Coll>(c));
 }
 
-template<class CharT, class Traits, class Map>
-inline typename std::enable_if<
-        debug::is_map<Map>::value,
-        std::basic_ostream<CharT, Traits> &>::type
+template<class CharT, class Traits, TYPE_CONCEPT(Map, debug::map)>
+inline CONCEPT_IF_1(debug::map, Map, std::basic_ostream<CharT, Traits> &)
 operator<<(std::basic_ostream<CharT, Traits> &out, Map &&map) {
     return debug::write_map(out, std::forward<Map>(map));
 }
 
-template<class CharT, class Traits, class Tp>
-inline typename std::enable_if<
-        debug::tuple_minus_range<Tp>::value,
-        std::basic_ostream<CharT, Traits> &>::type
+template<class CharT, class Traits, TYPE_CONCEPT(Tp, debug::tuple_minus_range)>
+inline CONCEPT_IF_1(debug::tuple_minus_range, Tp, std::basic_ostream<CharT, Traits> &)
 operator<<(std::basic_ostream<CharT, Traits> &out, Tp &&tuple) {
     return debug::write_tuple<0>(out << "[", std::forward<Tp>(tuple)) << "]";
 }
 
 #if __cpp_lib_variant
 
-template<class CharT, class Traits, class Variant>
-inline typename std::enable_if<
-        debug::is_variant<Variant>::value,
-        std::basic_ostream<CharT, Traits> &>::type
+template<class CharT, class Traits, TYPE_CONCEPT(Variant, debug::variant)>
+inline CONCEPT_IF_1(debug::variant, Variant, std::basic_ostream<CharT, Traits> &)
 operator<<(std::basic_ostream<CharT, Traits> &out, Variant &&var) {
     return debug::write_variant(out, std::forward<Variant>(var));
 }
@@ -450,19 +392,19 @@ operator<<(std::basic_ostream<CharT, Traits> &out, Variant &&var) {
 #else /* 201103L */
 
 template<class CharT, class Traits, class Adapter>
-inline typename extension::enable_if<debug::is_adapter<const Adapter>::value, std::basic_ostream<CharT, Traits> &>::type
+inline CONCEPT_IF_1(debug::adapter, const Adapter, std::basic_ostream<CharT, Traits> &)
 operator<<(std::basic_ostream<CharT, Traits> &out, const Adapter &q) {
     return debug::write_adapter(out, q);
 }
 
 template<class CharT, class Traits, class Coll>
-inline typename extension::enable_if<debug::collection_minus_string<const Coll>::value, std::basic_ostream<CharT, Traits> &>::type
+inline CONCEPT_IF_1(debug::collection_minus_string, const Coll, std::basic_ostream<CharT, Traits> &)
 operator<<(std::basic_ostream<CharT, Traits> &out, const Coll &c) {
     return debug::write_collection(out, c);
 }
 
 template<class CharT, class Traits, class Map>
-inline typename extension::enable_if<debug::is_map<const Map>::value, std::basic_ostream<CharT, Traits> &>::type
+inline CONCEPT_IF_1(debug::map, const Map, std::basic_ostream<CharT, Traits> &)
 operator<<(std::basic_ostream<CharT, Traits> &out, const Map &mp) {
     return debug::write_map(out, mp);
 }

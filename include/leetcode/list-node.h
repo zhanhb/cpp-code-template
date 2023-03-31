@@ -4,6 +4,7 @@
 
 #include <deque>
 #include <iostream>
+#include "common/iterator.h"
 
 namespace leetcode {
     template<class Tp>
@@ -40,11 +41,8 @@ namespace leetcode {
             return container.empty() ? nullptr : &container.front();
         }
 
-        template<class It>
-        typename std::enable_if<std::is_convertible<
-                typename std::iterator_traits<It>::iterator_category,
-                std::forward_iterator_tag
-        >::value>::type
+        template<TYPE_CONCEPT(It, extension::forward_iterator)>
+        CONCEPT_IF_1(extension::forward_iterator, It, void)
         assign(It first, It last) {
             container.clear();
             Node *ret = nullptr;

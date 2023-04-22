@@ -1,4 +1,6 @@
 #include "write-wide.h"
+#include <clocale>
+#include <cstring>
 #include <sstream>
 #include "static_assert.h"
 #include "verify.h"
@@ -81,13 +83,83 @@ STATIC_ASSERT_CONCEPT(utility::string_of, std::wstring &&, wchar_t);
 STATIC_ASSERT_CONCEPT(utility::string_of, const std::string, char);
 STATIC_ASSERT_CONCEPT(utility::string_of, const std::wstring, wchar_t);
 
+class lctype_around {
+    const char *old;
+public:
+    explicit lctype_around(const char *loc) : old(std::setlocale(LC_CTYPE, reinterpret_cast<const char *>(0))) {
+        std::setlocale(LC_CTYPE, loc);
+    }
+
+    ~lctype_around() { std::setlocale(LC_CTYPE, old); }
+};
+
+class fallback_codecvt : public std::codecvt<wchar_t, char, std::mbstate_t> {
+    const char *loc_;
+public:
+
+    explicit fallback_codecvt(const char *loc = "") : loc_(loc) {}
+
+protected:
+    virtual result do_out(
+            state_type &state,
+            const intern_type *from, const intern_type *from_end, const intern_type *&from_next,
+            extern_type *to, extern_type *to_end, extern_type *&to_next
+    ) const throw() {
+        lctype_around guard(loc_);
+        char buf[8];
+        for (from_next = from, to_next = to; from_next != from_end; ++from_next) {
+            wchar_t wch = *from_next;
+            std::size_t res = std::wcrtomb(buf, wch, &state);
+            if (res == std::size_t(-1)) return error;
+            if (to_end - to_next < (std::ptrdiff_t) res) return partial;
+            std::memcpy(to_next, buf, res);
+            to_next += res;
+        }
+        return ok;
+    }
+
+    virtual result do_in(
+            state_type &state,
+            const extern_type *from, const extern_type *from_end, const extern_type *&from_next,
+            intern_type *to, intern_type *to_end, intern_type *&to_next
+    ) const throw() {
+        lctype_around guard(loc_);
+        for (from_next = from, to_next = to; from_next != from_end;) {
+            if (to_next == to_end) return partial;
+            wchar_t wch[2];
+            std::size_t res = std::mbrtowc(wch, from_next, from_end - from_next, &state);
+            switch (res) {
+                case std::size_t(-2):
+                    return partial;
+                case std::size_t(-1):
+                    return error;
+                case 0:
+                    res = 1;
+                default:
+                    break;
+            }
+            *to_next++ = *wch;
+            from_next += res;
+        }
+        return ok;
+    }
+
+    virtual int do_encoding() const throw() { return -1; }
+
+    virtual bool do_always_noconv() const throw() { return false; }
+
+    virtual int do_max_length() const throw() {
+        lctype_around guard(loc_);
+        return MB_CUR_MAX;
+    }
+};
+
 int main() {
     std::locale loc;
     try {
         loc = std::locale("");
     } catch (...) {
-        std::cerr << "skip the test, for the default locale is not supported." << std::endl;
-        return 0;
+        loc = std::locale(std::locale("C"), new fallback_codecvt());
     }
     pair<string, wstring> test_cases[] = {
             make_pair("\u4f60\u597d", L"\u4f60\u597d"),
